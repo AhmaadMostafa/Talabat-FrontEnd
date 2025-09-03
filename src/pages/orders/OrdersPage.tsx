@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Package, Truck, CheckCircle, Clock, X, Eye, Calendar, DollarSign, MapPin, Utensils, ShoppingBag } from 'lucide-react'
+import { Package, Truck, CheckCircle, Clock, X, Eye, MapPin, Utensils, ShoppingBag } from 'lucide-react'
 
 // Status mapping for display
 const statusMap = {
@@ -29,7 +29,7 @@ const statusIcons = {
 }
 
 // Simple image component with proper loading states
-const SafeImage = ({ src, alt, className }) => {
+const SafeImage = ({ src, alt, className }: { src: string; alt: string; className: string }) => {
   const [hasError, setHasError] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   
@@ -83,53 +83,45 @@ const countryNames = {
   'FR': 'France'
 }
 
-function OrdersPage({ onNavigate, ordersApi }) {
-  const [orders, setOrders] = useState([])
+function OrdersPage() {
+  const [orders, setOrders] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     const loadOrders = async () => {
       try {
-        let ordersData
+        // Direct fetch with authentication
+        const token = localStorage.getItem('token') || localStorage.getItem('authToken') || localStorage.getItem('accessToken')
         
-        if (ordersApi && ordersApi.getOrders) {
-          // Use existing API service if provided
-          ordersData = await ordersApi.getOrders()
-        } else {
-          // Direct fetch with authentication
-          const token = localStorage.getItem('token') || localStorage.getItem('authToken') || localStorage.getItem('accessToken')
-          
-          if (!token) {
-            setError('Authentication required. Please log in.')
-            setLoading(false)
-            return
-          }
+        if (!token) {
+          setError('Authentication required. Please log in.')
+          setLoading(false)
+          return
+        }
 
-          const response = await fetch('http://talaabat.runasp.net/api/Orders', {
-            method: 'GET',
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json'
-            }
-          })
-          
-          if (!response.ok) {
-            if (response.status === 401) {
-              throw new Error('Authentication failed. Please log in again.')
-            } else if (response.status === 403) {
-              throw new Error('Access denied.')
-            } else {
-              throw new Error(`Failed to load orders: ${response.status}`)
-            }
+        const response = await fetch('http://talaabat.runasp.net/api/Orders', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
           }
-          
-          ordersData = await response.json()
+        })
+        
+        if (!response.ok) {
+          if (response.status === 401) {
+            throw new Error('Authentication failed. Please log in again.')
+          } else if (response.status === 403) {
+            throw new Error('Access denied.')
+          } else {
+            throw new Error(`Failed to load orders: ${response.status}`)
+          }
         }
         
+        const ordersData = await response.json()
         setOrders(ordersData)
         setLoading(false)
-      } catch (err) {
+      } catch (err: any) {
         console.error('Error loading orders:', err)
         setError(err.message || 'Failed to load orders')
         setLoading(false)
@@ -137,9 +129,9 @@ function OrdersPage({ onNavigate, ordersApi }) {
     }
 
     loadOrders()
-  }, [ordersApi])
+  }, [])
 
-  const formatDate = (dateString) => {
+  const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
@@ -147,34 +139,29 @@ function OrdersPage({ onNavigate, ordersApi }) {
     })
   }
 
-  const formatTime = (dateString) => {
+  const formatTime = (dateString: string) => {
     return new Date(dateString).toLocaleTimeString('en-US', {
       hour: '2-digit',
       minute: '2-digit'
     })
   }
 
-  const getStatusDisplay = (status) => {
-    return typeof status === 'string' ? status : statusMap[status] || 'Unknown'
+  const getStatusDisplay = (status: string | number) => {
+    return typeof status === 'string' ? status : statusMap[status as keyof typeof statusMap] || 'Unknown'
   }
 
-  const handleViewOrder = (orderId) => {
-    // Navigate to order success page with orderId
-    if (onNavigate) {
-      onNavigate(`/checkout/success?orderId=${orderId}`)
-    } else {
-      // Fallback to direct navigation
-      window.location.href = `/checkout/success?orderId=${orderId}`
-    }
+  const handleViewOrder = (orderId: number) => {
+    // Navigate to order detail page
+    window.location.href = `/orders/${orderId}`
   }
 
-  const getEstimatedDelivery = (orderDate, deliveryMethod) => {
+  const getEstimatedDelivery = (orderDate: string, deliveryMethod: string) => {
     const date = new Date(orderDate)
     // Add estimated minutes based on delivery method (food delivery is faster)
     const deliveryMinutes = deliveryMethod?.toLowerCase().includes('express') ? 30 : 45
     date.setMinutes(date.getMinutes() + deliveryMinutes)
     
-    return `${formatTime(date)}`
+    return `${formatTime(date.toISOString())}`
   }
 
   if (loading) {
@@ -226,7 +213,7 @@ function OrdersPage({ onNavigate, ordersApi }) {
               You haven't placed any orders yet. Start ordering to see your food deliveries here.
             </p>
             <button
-              onClick={() => onNavigate && onNavigate('/')}
+              onClick={() => window.location.href = '/'}
               className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors"
             >
               Order Food
@@ -248,9 +235,9 @@ function OrdersPage({ onNavigate, ordersApi }) {
         </div>
 
         <div className="space-y-4">
-          {orders.map((order) => {
+          {orders.map((order: any) => {
             const statusDisplay = getStatusDisplay(order.status)
-            const StatusIcon = statusIcons[statusDisplay] || Package
+            const StatusIcon = statusIcons[statusDisplay as keyof typeof statusIcons] || Package
             
             return (
               <div key={order.id} className="bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-shadow overflow-hidden">
@@ -258,35 +245,24 @@ function OrdersPage({ onNavigate, ordersApi }) {
                 <div className="p-4 md:p-6 border-b border-gray-100 bg-white">
                   <div className="flex flex-col md:flex-row md:items-center md:justify-between">
                     <div className="flex items-center space-x-3 mb-3 md:mb-0">
-                      <div className={`p-2 rounded-full ${statusColors[statusDisplay] || 'bg-gray-100'}`}>
+                      <div className={`p-2 rounded-full ${statusColors[statusDisplay as keyof typeof statusColors] || 'bg-gray-100'}`}>
                         <StatusIcon className="w-5 h-5" />
                       </div>
                       <div>
-                        <h3 className="text-lg font-semibold text-gray-900">Order #{order.id}</h3>
-                        <div className="flex items-center space-x-2 mt-1">
-                          <div className="flex items-center text-sm text-gray-500">
-                            <Calendar className="w-4 h-4 mr-1" />
-                            {formatDate(order.orderDate)}
-                          </div>
-                          <span className="text-gray-300">•</span>
-                          <div className="flex items-center text-sm text-gray-500">
-                            <Clock className="w-4 h-4 mr-1" />
-                            {formatTime(order.orderDate)}
-                          </div>
-                        </div>
+                        <h3 className="font-semibold text-gray-900">Order #{order.id}</h3>
+                        <p className="text-sm text-gray-600">{formatDate(order.orderDate)} at {formatTime(order.orderDate)}</p>
                       </div>
                     </div>
                     
-                    <div className="flex items-center justify-between md:justify-end space-x-3">
-                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${statusColors[statusDisplay] || 'bg-gray-100 text-gray-800'}`}>
+                    <div className="flex items-center space-x-2">
+                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${statusColors[statusDisplay as keyof typeof statusColors] || 'bg-gray-100 text-gray-800'}`}>
                         {statusDisplay}
                       </span>
                       <button
                         onClick={() => handleViewOrder(order.id)}
-                        className="flex items-center px-3 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors text-sm"
+                        className="p-2 text-gray-600 hover:text-primary-600 transition-colors"
                       >
-                        <Eye className="w-4 h-4 mr-1" />
-                        Details
+                        <Eye className="w-4 h-4" />
                       </button>
                     </div>
                   </div>
@@ -300,7 +276,7 @@ function OrdersPage({ onNavigate, ordersApi }) {
                     <div>
                       <h4 className="font-medium text-gray-900 mb-3">Items ({order.items?.length || 0})</h4>
                       <div className="space-y-3">
-                        {order.items?.slice(0, 3).map((item) => (
+                        {order.items?.slice(0, 3).map((item: any) => (
                           <div key={item.id} className="flex items-center space-x-3">
                             <SafeImage 
                               src={item.pictureUrl} 
@@ -359,7 +335,7 @@ function OrdersPage({ onNavigate, ordersApi }) {
                         </h5>
                         <div className="text-sm text-gray-600">
                           <p className="truncate">{order.shippingAddress?.street}</p>
-                          <p>{order.shippingAddress?.city}, {countryNames[order.shippingAddress?.country] || order.shippingAddress?.country}</p>
+                          <p>{order.shippingAddress?.city}, {countryNames[order.shippingAddress?.country as keyof typeof countryNames] || order.shippingAddress?.country}</p>
                         </div>
                       </div>
 

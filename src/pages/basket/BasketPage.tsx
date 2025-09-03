@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { FaMinus, FaPlus, FaTrash, FaShoppingCart } from 'react-icons/fa'
+import { FaShoppingCart } from 'react-icons/fa'
 import { useBasketStore } from '@/stores/basketStore'
 import { useAuthStore } from '@/stores/authStore'
 import BasketSummary from '@/components/basket/BasketSummary'

@@ -20,7 +20,6 @@ export default function RegisterPage() {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-    setError,
   } = useForm<RegisterFormData>()
 
   const validateEmailNotTaken = async (email: string) => {

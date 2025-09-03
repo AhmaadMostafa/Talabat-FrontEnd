@@ -9,7 +9,7 @@ import { useAuthStore } from '@/stores/authStore'
 import type { Address, DeliveryMethod, OrderToCreate } from '@/types'
 
 // Load Stripe (you'll need to add your publishable key to environment variables)
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || 'pk_test_51Rh9RQ2eFmCKyESszUBOZUjt8tT9H6BlebSNauSAyjuuFMf7DfHFVfpnwIPeOOXvGuTb0ZS9IQswjKxjlNygriZo00W8kybZZ7')
+const stripePromise = loadStripe('pk_test_51Rh9RQ2eFmCKyESszUBOZUjt8tT9H6BlebSNauSAyjuuFMf7DfHFVfpnwIPeOOXvGuTb0ZS9IQswjKxjlNygriZo00W8kybZZ7')
 
 interface CheckoutFormProps {
   onOrderCreated: (orderId: number) => void
@@ -121,18 +121,10 @@ function CheckoutFormContent({ onOrderCreated }: CheckoutFormProps) {
     const updatePaymentIntent = async () => {
       if (basket && selectedDeliveryMethod && clientSecret) {
         try {
-          // Check if updatePaymentIntent method exists, otherwise recreate payment intent
-          if (basketApi.updatePaymentIntent && typeof basketApi.updatePaymentIntent === 'function') {
-            const updatedBasket = await basketApi.updatePaymentIntent(basket.id, selectedDeliveryMethod.id)
-            if (updatedBasket.clientSecret) {
-              setClientSecret(updatedBasket.clientSecret)
-            }
-          } else {
-            // Fallback: recreate payment intent with new delivery method
-            const updatedBasket = await basketApi.createPaymentIntent(basket.id, selectedDeliveryMethod.id)
-            if (updatedBasket.clientSecret) {
-              setClientSecret(updatedBasket.clientSecret)
-            }
+          // Recreate payment intent with new delivery method
+          const updatedBasket = await basketApi.createPaymentIntent(basket.id)
+          if (updatedBasket.clientSecret) {
+            setClientSecret(updatedBasket.clientSecret)
           }
         } catch (error) {
           console.error('Failed to update payment intent:', error)
@@ -231,9 +223,6 @@ function CheckoutFormContent({ onOrderCreated }: CheckoutFormProps) {
           case 'validation_error':
             toast.error(paymentError.message || 'Payment failed. Please check your card details.')
             break
-          case 'authentication_required':
-            toast.error('Authentication required. Please try again.')
-            break
           default:
             toast.error('Payment failed. Please try again.')
         }
@@ -249,8 +238,7 @@ function CheckoutFormContent({ onOrderCreated }: CheckoutFormProps) {
           const orderData: OrderToCreate = {
             basketId: basket.id,
             deliveryMethodId: selectedDeliveryMethod!.id,
-            shippingAddress: shippingAddressForApi,
-            paymentIntentId: paymentIntent.id // Include payment intent ID
+            shippingAddress: shippingAddressForApi
           }
 
           const order = await ordersApi.createOrder(orderData)

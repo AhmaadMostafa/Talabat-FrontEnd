@@ -6,7 +6,6 @@ import SafeImage from '@/components/shared/SafeImage'
 interface BasketSummaryProps {
   items: BasketItem[]
   isBasket?: boolean
-  isOrder?: boolean
   onIncrement?: (item: BasketItem) => void
   onDecrement?: (item: BasketItem) => void
   onRemove?: (item: BasketItem) => void
@@ -15,7 +14,6 @@ interface BasketSummaryProps {
 export default function BasketSummary({
   items,
   isBasket = false,
-  isOrder = false,
   onIncrement,
   onDecrement,
   onRemove,

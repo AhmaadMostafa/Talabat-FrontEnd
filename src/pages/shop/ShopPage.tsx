@@ -1,10 +1,8 @@
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import { useShopStore } from '@/stores/shopStore'
-import { useBasketStore } from '@/stores/basketStore'
 import ProductCard from '@/components/shop/ProductCard'
 import ProductFilters from '@/components/shop/ProductFilters'
 import Pagination from '@/components/shared/Pagination'
-import PagingHeader from '@/components/shared/PagingHeader'
 import LoadingSpinner from '@/components/shared/LoadingSpinner'
 
 const sortOptions = [

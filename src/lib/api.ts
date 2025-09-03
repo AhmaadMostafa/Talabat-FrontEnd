@@ -1,18 +1,17 @@
 import axios, { AxiosResponse } from 'axios'
 import { toast } from 'react-hot-toast'
-import type { 
-  Product, 
-  Pagination, 
-  Brand, 
-  ProductType, 
-  ShopParams, 
-  Basket, 
-  BasketItem, 
-  User, 
-  Address, 
-  DeliveryMethod, 
-  Order, 
-  OrderToCreate 
+import type {
+  Product,
+  Brand,
+  ProductType,
+  Pagination,
+  ShopParams,
+  Basket,
+  User,
+  Address,
+  Order,
+  OrderToCreate,
+  DeliveryMethod
 } from '@/types'
 
 const api = axios.create({

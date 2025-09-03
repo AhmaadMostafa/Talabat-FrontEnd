@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { FaShoppingCart, FaUser, FaHistory, FaSignOutAlt } from 'react-icons/fa'
 import { Menu, Transition } from '@headlessui/react'

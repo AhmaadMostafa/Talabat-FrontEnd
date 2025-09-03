@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { CheckCircle, Package, Truck, Mail, Download, ShoppingBag, Clock, MapPin, CreditCard } from 'lucide-react'
+import { CheckCircle, Package, Mail, Download, ShoppingBag, Clock, MapPin, CreditCard } from 'lucide-react'
+import { FaBox } from 'react-icons/fa'
 
 // Status mapping for display
 const statusMap = {
@@ -24,9 +25,9 @@ const countryNames = {
 
 function CheckoutSuccessPage() {
   const navigate = useNavigate()
-  const [order, setOrder] = useState(null)
+  const [order, setOrder] = useState<any>(null)
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     const loadOrder = async () => {
@@ -74,7 +75,7 @@ function CheckoutSuccessPage() {
         
         setOrder(orderData)
         setLoading(false)
-      } catch (err) {
+      } catch (err: any) {
         console.error('Error loading order:', err)
         setError(err.message || 'Failed to load order details')
         setLoading(false)
@@ -90,6 +91,8 @@ function CheckoutSuccessPage() {
 
   const handleDownloadInvoice = () => {
     // Generate invoice download
+    if (!order) return
+    
     const invoiceData = {
       orderId: order.id,
       date: order.orderDate,
@@ -100,7 +103,7 @@ function CheckoutSuccessPage() {
     // In production, this would trigger a PDF download
   }
 
-  const formatDate = (dateString) => {
+  const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
@@ -108,24 +111,24 @@ function CheckoutSuccessPage() {
     })
   }
 
-  const formatTime = (dateString) => {
+  const formatTime = (dateString: string) => {
     return new Date(dateString).toLocaleTimeString('en-US', {
       hour: '2-digit',
       minute: '2-digit'
     })
   }
 
-  const getEstimatedDelivery = (orderDate, deliveryMethod) => {
+  const getEstimatedDelivery = (orderDate: string, deliveryMethod: string) => {
     const date = new Date(orderDate)
     // Add estimated minutes based on delivery method (food delivery is faster)
     const deliveryMinutes = deliveryMethod?.toLowerCase().includes('express') ? 30 : 45
     date.setMinutes(date.getMinutes() + deliveryMinutes)
     
-    return `${formatTime(date)}`
+    return `${formatTime(date.toISOString())}`
   }
 
-  const getStatusInfo = (status) => {
-    const statusStr = typeof status === 'string' ? status : statusMap[status] || 'Unknown'
+  const getStatusInfo = (status: string | number) => {
+    const statusStr = typeof status === 'string' ? status : statusMap[status as keyof typeof statusMap] || 'Unknown'
     
     switch (statusStr.toLowerCase()) {
       case 'pending':
@@ -174,7 +177,7 @@ function CheckoutSuccessPage() {
   }
 
   const statusInfo = getStatusInfo(order.status)
-  const currentStatus = typeof order.status === 'string' ? order.status : statusMap[order.status] || 'Unknown'
+  const currentStatus = typeof order.status === 'string' ? order.status : statusMap[order.status as keyof typeof statusMap] || 'Unknown'
 
   return (
     <div className="min-h-screen bg-gray-50 py-4 md:py-8 overflow-x-hidden">
@@ -246,25 +249,29 @@ function CheckoutSuccessPage() {
           <div className="bg-white rounded-xl shadow-md p-6">
             <h2 className="text-xl font-semibold text-gray-900 mb-4">Order Summary</h2>
             <div className="space-y-4 mb-6">
-              {order.items.map((item) => (
-                <div key={item.id} className="flex items-center space-x-4 p-3 border rounded-lg">
-                  <div className="w-16 h-16 rounded-lg bg-gray-100 overflow-hidden relative flex-shrink-0">
-                    <img 
-                      src={item.pictureUrl} 
+              {order.items.map((item: any) => (
+                <div key={item.id} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+                  <div className="relative w-16 h-16">
+                    <img
+                      src={item.pictureUrl}
                       alt={item.productName}
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        e.target.style.display = 'none'
-                        const fallback = e.target.parentElement.querySelector('.image-fallback')
-                        if (fallback) fallback.style.display = 'flex'
+                      className="w-full h-full object-cover rounded-lg"
+                      onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
+                        e.currentTarget.style.display = 'none'
+                        const fallback = e.currentTarget.parentElement?.querySelector('.image-fallback')
+                        if (fallback) {
+                          (fallback as HTMLElement).style.display = 'flex'
+                        }
                       }}
-                      onLoad={(e) => {
-                        const fallback = e.target.parentElement.querySelector('.image-fallback')
-                        if (fallback) fallback.style.display = 'none'
+                      onLoad={(e: React.SyntheticEvent<HTMLImageElement>) => {
+                        const fallback = e.currentTarget.parentElement?.querySelector('.image-fallback')
+                        if (fallback) {
+                          (fallback as HTMLElement).style.display = 'none'
+                        }
                       }}
                     />
                     <div className="image-fallback absolute inset-0 bg-gray-200 flex items-center justify-center" style={{display: 'none'}}>
-                      <Package className="w-8 h-8 text-gray-400" />
+                      <FaBox className="w-8 h-8 text-gray-400" />
                     </div>
                   </div>
                   <div className="flex-1 min-w-0">
@@ -311,7 +318,7 @@ function CheckoutSuccessPage() {
                 <div>
                   <p className="font-medium text-gray-900">{order.shippingAddress.firstName} {order.shippingAddress.lastName}</p>
                   <p className="text-gray-600">{order.shippingAddress.street}</p>
-                  <p className="text-gray-600">{order.shippingAddress.city}, {countryNames[order.shippingAddress.country] || order.shippingAddress.country}</p>
+                  <p className="text-gray-600">{order.shippingAddress.city}, {countryNames[order.shippingAddress.country as keyof typeof countryNames] || order.shippingAddress.country}</p>
                 </div>
 
                 <div className="pt-3 border-t">
