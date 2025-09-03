@@ -15,7 +15,7 @@ import type {
 } from '@/types'
 
 const api = axios.create({
-  baseURL: 'http://talaabat.runasp.net/api',
+  baseURL: 'https://talaabat.runasp.net/api',
   timeout: 10000,
 })
 

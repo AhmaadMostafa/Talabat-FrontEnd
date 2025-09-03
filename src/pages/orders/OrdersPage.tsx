@@ -100,7 +100,7 @@ function OrdersPage() {
           return
         }
 
-        const response = await fetch('http://talaabat.runasp.net/api/Orders', {
+        const response = await fetch('https://talaabat.runasp.net/api/Orders', {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${token}`,

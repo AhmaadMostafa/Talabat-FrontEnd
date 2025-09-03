@@ -51,7 +51,7 @@ function CheckoutSuccessPage() {
           return
         }
 
-        const response = await fetch(`http://talaabat.runasp.net/api/Orders/${orderId}`, {
+        const response = await fetch(`https://talaabat.runasp.net/api/Orders/${orderId}`, {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${token}`,
